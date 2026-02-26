@@ -6,22 +6,37 @@
 --------------> Location: geospatial
 --------------> Type-of-food: string[]
 --------------> Price-range: (decimal,decimal)
-|
---------------> \_Menu-Items|
+{
+--------------> \_Menu-Items []|
+--------------------------------> Name: string
+--------------------------------> Price: decimal
+}
 
 \_Users|
--------->
+--------> Username: string
+--------> hashed_passwod_with_user_sided_salt: string ( we going simple LMAO )
+{
 --------> \_Orders: [] various orders models|
-|
+
 ---------------------------------------------> Order-number-per-restaurant: integer
 ---------------------------------------------> For-restaurant: reference_restaurant
----------------------------------------------> Menu-items: reference_to_menu_items_in_resutaurant []
----------------------------------------------> Payed: decimal
+---------------------------------------------> \_Menu-items: []|
+
+-{
+----------------------------------------------------------------> Quantity: decimal
+----------------------------------------------------------------> Menu-item-id-from-restaurant: reference
+----------------------------------------------------------------> Menu-note: Text
+-}
+}
+
+---------------------------------------------> Payed: bool
+---------------------------------------------> Quantity: bool
 ---------------------------------------------> Note: Text
+---------------------------------------------> Completed
 
 \_Reviews|
-----------> From-user: reference_user
-----------> For-restaurant: reference_restaurant
+----------> From-user: reference
+----------> For-restaurant: reference
 ----------> Comment: text
 ----------> Score: decimal between 0..5 (like a star rating)
 ----------> Photos-url: string [] (c'mon is just a bucket)
