@@ -16,7 +16,7 @@
 --------> Username: string
 --------> hashed_passwod_with_user_sided_salt: string ( we going simple LMAO )
 {
---------> \_Orders: [] various orders models|
+--------> \_Recent_orders: [] various orders models|
 
 ---------------------------------------------> Order-number-per-restaurant: integer
 ---------------------------------------------> For-restaurant: reference_restaurant
@@ -40,3 +40,18 @@
 ----------> Comment: text
 ----------> Score: decimal between 0..5 (like a star rating)
 ----------> Photos-url: string [] (c'mon is just a bucket)
+
+
+\_Orders_Historic|
+------------------> From-user: reference
+------------------> From-restaurant reference
+------------------> \_Recent_orders: [] various orders models|
+--------------------------------------------------------------> Order-number-per-restaurant: integer
+--------------------------------------------------------------> For-restaurant: reference_restaurant
+--------------------------------------------------------------> \_Menu-items: []|
+
+-{
+---------------------------------------------------------------------------------> Quantity: decimal
+---------------------------------------------------------------------------------> Menu-item-id-from-restaurant: reference
+---------------------------------------------------------------------------------> Menu-note: Text
+-}
