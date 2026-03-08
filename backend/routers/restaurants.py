@@ -1,0 +1,31 @@
+from fastapi import APIRouter, HTTPException
+from bson import ObjectId
+from utils.utils import serialize_doc
+from database import restaurants_collection
+from datetime import datetime
+
+router = APIRouter(prefix="/restaurants", tags=["Restaurants"])
+
+@router.post("/")
+def create_restaurant(data: dict):
+    data["created_at"] = datetime.utcnow()
+    data["total_orders"] = 0
+    result = restaurants_collection.insert_one(data)
+    return {"id": str(result.inserted_id)}
+
+@router.get("/")
+def get_restaurants():
+    restaurants = list(restaurants_collection.find())
+    return [serialize_doc(r) for r in restaurants]
+
+@router.get("/{restaurant_id}")
+def get_restaurant(restaurant_id: str):
+    restaurant = restaurants_collection.find_one({"_id": ObjectId(restaurant_id)})
+    if not restaurant:
+        raise HTTPException(404, "Restaurant not found")
+    return serialize_doc(restaurant)
+
+@router.delete("/{restaurant_id}")
+def delete_restaurant(restaurant_id: str):
+    restaurants_collection.delete_one({"_id": ObjectId(restaurant_id)})
+    return {"message": "Deleted"}
