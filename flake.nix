@@ -30,6 +30,8 @@
           svelte-language-server
           nodejs
           typescript-language-server
+          tailwindcss
+          tailwindcss-language-server
         ];
 
         link_flag = base_lib ++ std_bin;
