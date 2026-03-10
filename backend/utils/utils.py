@@ -1,4 +1,5 @@
 from bson import ObjectId
+from fastapi import Response
 
 from bson import ObjectId
 
@@ -27,3 +28,10 @@ def serialize_doc(doc):
             doc[key] = new_list
 
     return doc
+
+
+def allow_all_cors(response: Response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    response.headers["Access-Control-Allow-Credentials"] = "true"

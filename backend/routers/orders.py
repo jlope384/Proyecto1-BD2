@@ -1,10 +1,19 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Response
 from bson import ObjectId
 from database import client
 from datetime import datetime
-from utils.utils import serialize_doc
+from utils.utils import serialize_doc, allow_all_cors
 
-router = APIRouter(prefix="/orders", tags=["Orders"])
+router = APIRouter(
+    prefix="/orders",
+    tags=["Orders"],
+    dependencies=[Depends(allow_all_cors)],
+)
+
+@router.options("/{full_path:path}")
+def orders_cors(full_path: str, response: Response):
+    allow_all_cors(response)
+    return {"status": "ok"}
 
 @router.post("/")
 def create_order(user_id: str, restaurant_id: str, order_data: dict):
