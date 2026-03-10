@@ -1,16 +1,23 @@
 from bson import ObjectId
 
+from bson import ObjectId
+
 def serialize_doc(doc):
     if not doc:
         return doc
 
-    doc["_id"] = str(doc["_id"])
+    if "_id" in doc:
+        doc["_id"] = str(doc["_id"])
 
     for key, value in doc.items():
+
         if isinstance(value, ObjectId):
             doc[key] = str(value)
 
-        if isinstance(value, list):
+        elif isinstance(value, dict):
+            doc[key] = serialize_doc(value)
+
+        elif isinstance(value, list):
             new_list = []
             for item in value:
                 if isinstance(item, dict):

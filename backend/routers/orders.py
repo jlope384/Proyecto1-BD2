@@ -21,16 +21,18 @@ def create_order(user_id: str, restaurant_id: str, order_data: dict):
 
             user_result = users_collection.update_one(
                 {"_id": ObjectId(user_id)},
-                {"$push": {"orders": order_data}}
+                {"$push": {"orders": order_data}},
+                session=session
             )
 
             restaurant_result = restaurants_collection.update_one(
                 {"_id": ObjectId(restaurant_id)},
-                {"$inc": {"total_orders": 1}}
+                {"$inc": {"total_orders": 1}},
+                session=session
             )
 
             if user_result.matched_count == 0 or restaurant_result.matched_count == 0:
-                raise HTTPException(404, "User or Restaurant not found")
+                raise HTTPException(status_code=404, detail="User or Restaurant not found")
 
     return {"message": "Order created successfully"}
 

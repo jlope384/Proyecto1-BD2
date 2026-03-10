@@ -29,3 +29,22 @@ def get_user(user_id: str):
 def delete_user(user_id: str):
     users_collection.delete_one({"_id": ObjectId(user_id)})
     return {"message": "User deleted"}
+
+@router.post("/login")
+def login(data: dict):
+
+    username = data.get("username")
+    password = data.get("password")
+
+    user = users_collection.find_one({"username": username})
+
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+
+    if password != user["hashed_password_with_user_sided_salt"]:
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+
+    return {
+        "message": "Login successful",
+        "user_id": str(user["_id"])
+    }
