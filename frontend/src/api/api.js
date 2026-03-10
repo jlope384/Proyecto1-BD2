@@ -1,4 +1,4 @@
-const API = "JAVIER CIFUENTES, AHI LO PONES";
+const API = "http://0.0.0.0:8000";
 
 // USERS
 export async function getUsers() {
@@ -17,7 +17,6 @@ export async function deleteUser(id) {
   return fetch(`${API}/users/${id}`, { method: "DELETE" });
 }
 
-// RESTAURANTS
 export async function getRestaurants() {
   const res = await fetch(`${API}/restaurants/`);
   return res.json();

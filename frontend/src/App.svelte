@@ -50,16 +50,22 @@
     if (status === "delivered") return "bg-green-200 text-green-900";
     return "bg-gray-200 text-gray-800";
   }
-  onMount(loadAll);
+  onMount(() => {
+    loadAll();
+    console.log(restaurants);
+  });
+
+  $effect(() => {
+    loadAll();
+  });
 </script>
 
 <div class="min-h-screen bg-[#0d0a0a] text-gray-200 p-8">
-  <!-- HEADER -->
   <div class="mb-10 border-b border-red-700 pb-4">
-    <h1 class="text-4xl font-bold text-red-400">Restaurant OS</h1>
+    <h1 class="text-4xl font-bold text-red-400">Crud Restaurants</h1>
     <p class="text-red-300 text-sm">Admin Control Panel</p>
   </div>
-  <!-- METRICS -->
+
   <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
     <div class="border border-red-700 bg-black p-6 rounded-xl">
       <p class="text-red-400 text-xs uppercase">Users</p>
@@ -78,9 +84,8 @@
       <p class="text-3xl font-bold">{orders.length}</p>
     </div>
   </div>
-  <!-- WINDOWS GRID -->
+
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-    <!-- USERS WINDOW -->
     <div class="border border-red-700 bg-[#0a0a0a] rounded-xl overflow-hidden">
       <div
         class="flex justify-between items-center bg-red-700 px-3 py-1 text-sm font-bold rounded-t-xl"
@@ -116,7 +121,7 @@
         </ul>
       </div>
     </div>
-    <!-- RESTAURANTS WINDOW -->
+
     <div class="border border-red-700 bg-[#0a0a0a] rounded-xl overflow-hidden">
       <div
         class="flex justify-between items-center bg-red-700 px-3 py-1 text-sm font-bold rounded-t-xl"
@@ -144,7 +149,7 @@
         </ul>
       </div>
     </div>
-    <!-- REVIEWS WINDOW -->
+
     <div class="border border-red-700 bg-[#0a0a0a] rounded-xl overflow-hidden">
       <div
         class="flex justify-between items-center bg-red-700 px-3 py-1 text-sm font-bold rounded-t-xl"
@@ -163,7 +168,7 @@
         {/each}
       </div>
     </div>
-    <!-- ORDERS WINDOW -->
+
     <div class="border border-red-700 bg-[#0a0a0a] rounded-xl overflow-hidden">
       <div
         class="flex justify-between items-center bg-red-700 px-3 py-1 text-sm font-bold rounded-t-xl"
