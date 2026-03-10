@@ -1,3 +1,5 @@
+from http.client import InvalidURL
+
 from fastapi import APIRouter, HTTPException
 from bson import ObjectId
 from utils.utils import serialize_doc
@@ -20,9 +22,16 @@ def get_restaurants():
 
 @router.get("/{restaurant_id}")
 def get_restaurant(restaurant_id: str):
-    restaurant = restaurants_collection.find_one({"_id": ObjectId(restaurant_id)})
+    try:
+        obj_id = ObjectId(restaurant_id)
+    except InvalidURL:
+        raise HTTPException(status_code=400, detail="Invalid restaurant ID")
+
+    restaurant = restaurants_collection.find_one({"_id": obj_id})
+
     if not restaurant:
-        raise HTTPException(404, "Restaurant not found")
+        raise HTTPException(status_code=404, detail="Restaurant not found")
+
     return serialize_doc(restaurant)
 
 @router.delete("/{restaurant_id}")
