@@ -44,3 +44,23 @@ export async function createReview(data) {
   });
   return res.json();
 }
+
+// ORDERS
+export async function getOrders() {
+  const res = await fetch(`${API}/orders/`);
+  return res.json();
+}
+
+export async function getHistoricOrders() {
+  const res = await fetch(`${API}/orders-historic/`);
+  return res.json();
+}
+
+export async function createOrder(data) {
+  const res = await fetch(`${API}/orders/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+  return res.json();
+}
