@@ -2,6 +2,7 @@ from http.client import InvalidURL
 
 from fastapi import APIRouter, HTTPException, Depends, Response
 from bson import ObjectId
+from pymongo import DESCENDING
 from utils.utils import serialize_doc, allow_all_cors
 from database import restaurants_collection
 from datetime import datetime
@@ -27,6 +28,16 @@ def create_restaurant(data: dict):
 @router.get("/")
 def get_restaurants():
     restaurants = list(restaurants_collection.find())
+    return [serialize_doc(r) for r in restaurants]
+
+@router.get("/top")
+def get_top_restaurants(limit: int = 4):
+    if limit < 1 or limit > 50:
+        raise HTTPException(status_code=400, detail="Limit must be between 1 and 50")
+
+    restaurants = list(
+        restaurants_collection.find().sort("total_orders", DESCENDING).limit(limit)
+    )
     return [serialize_doc(r) for r in restaurants]
 
 @router.get("/{restaurant_id}")
