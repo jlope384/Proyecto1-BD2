@@ -1,10 +1,20 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Response
 from fastapi.responses import StreamingResponse
 from bson import ObjectId
 from database import fs
 import io
+from utils.utils import allow_all_cors
 
-router = APIRouter(prefix="/files", tags=["Files"])
+router = APIRouter(
+    prefix="/files",
+    tags=["Files"],
+    dependencies=[Depends(allow_all_cors)],
+)
+
+@router.options("/{full_path:path}")
+def files_cors(full_path: str, response: Response):
+    allow_all_cors(response)
+    return {"status": "ok"}
 
 @router.post("/upload")
 async def upload_file(file: UploadFile = File(...)):

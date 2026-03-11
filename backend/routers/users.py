@@ -1,10 +1,19 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Response
 from bson import ObjectId
 from database import users_collection
 from datetime import datetime
-from utils.utils import serialize_doc
+from utils.utils import serialize_doc, allow_all_cors
 
-router = APIRouter(prefix="/users", tags=["Users"])
+router = APIRouter(
+    prefix="/users",
+    tags=["Users"],
+    dependencies=[Depends(allow_all_cors)],
+)
+
+@router.options("/{full_path:path}")
+def users_cors(full_path: str, response: Response):
+    allow_all_cors(response)
+    return {"status": "ok"}
 
 @router.post("/")
 def create_user(data: dict):
