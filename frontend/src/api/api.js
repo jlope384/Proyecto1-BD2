@@ -27,6 +27,20 @@ async function request(path, { method = "GET", body, headers = {}, ...rest } = {
     delete init.headers["Content-Type"];
   }
 
+  const requestLabel = `${method} ${path}`;
+  const startedAt = performance.now?.() ?? Date.now();
+  const logPayload = isFormData ? "[FormData]" : init.body ?? "(no body)";
+
+  if (typeof console !== "undefined" && console.groupCollapsed) {
+    console.groupCollapsed(`%c[API]%c ${requestLabel}`, "color:#22d3ee", "color:inherit");
+    console.log("URL", `${API_BASE}${path}`);
+    console.log("Headers", init.headers);
+    console.log("Payload", logPayload);
+    console.groupEnd();
+  } else if (typeof console !== "undefined") {
+    console.log(`[API] ${requestLabel}`, { url: `${API_BASE}${path}`, headers: init.headers, payload: logPayload });
+  }
+
   const response = await fetch(`${API_BASE}${path}`, init);
 
   if (!response.ok) {
@@ -41,6 +55,13 @@ async function request(path, { method = "GET", body, headers = {}, ...rest } = {
   }
 
   const contentType = response.headers.get("content-type") ?? "";
+
+  const finishedAt = performance.now?.() ?? Date.now();
+  const elapsed = Math.max(0, finishedAt - startedAt).toFixed(1);
+  if (typeof console !== "undefined" && console.info) {
+    console.info(`%c[API]%c ${requestLabel} -> ${response.status} (${elapsed}ms)`, "color:#22d3ee", "color:inherit");
+  }
+
   if (contentType.includes("application/json")) {
     return response.json();
   }
