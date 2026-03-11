@@ -83,6 +83,17 @@ export const loginUser = (credentials) =>
 export const getRestaurants = () => request("/restaurants/");
 export const createRestaurant = (data) => request("/restaurants/", { method: "POST", body: data });
 export const deleteRestaurant = (id) => request(`/restaurants/${id}`, { method: "DELETE" });
+export const getTopRestaurants = (limit = 4) => request(`/restaurants/top?limit=${limit}`);
+export const searchRestaurants = ({ term, minOrders, minRating, limit = 10 } = {}) => {
+  const params = new URLSearchParams();
+  if (term) params.append("term", term);
+  if (minOrders) params.append("min_orders", minOrders);
+  if (minRating) params.append("min_rating", minRating);
+  if (limit) params.append("limit", limit);
+  const queryString = params.toString();
+  const path = queryString ? `/restaurants/search?${queryString}` : "/restaurants/search";
+  return request(path);
+};
 
 // REVIEWS
 export const getReviews = () => request("/reviews/");

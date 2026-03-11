@@ -393,20 +393,4 @@ database.orders_historic.createIndex({ from_user: 1 });
 database.orders_historic.createIndex({ "order_data.for_restaurant": 1 });
 database.users.createIndex({ username: 1 }, { unique: true });
 
-// -----------------------------
-// RESUMEN
-// -----------------------------
-print("\n===== RESUMEN FINAL =====");
-print(`restaurants:      ${database.restaurants.countDocuments()}`);
-print(`users:            ${database.users.countDocuments()}`);
-print(`reviews:          ${database.reviews.countDocuments()}`);
-print(`orders_historic:  ${database.orders_historic.countDocuments()}`);
-print(`TOTAL:            ${
-  database.restaurants.countDocuments() +
-  database.users.countDocuments() +
-  database.reviews.countDocuments() +
-  database.orders_historic.countDocuments()
-}`);
-print("=========================\n");
 
-print("Seed completado correctamente.");

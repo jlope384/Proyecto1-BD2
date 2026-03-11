@@ -7,6 +7,8 @@
     getRestaurants,
     createRestaurant,
     deleteRestaurant,
+    getTopRestaurants,
+    searchRestaurants,
     getReviews,
     getHistoricOrders,
     getUserOrders,
@@ -27,6 +29,7 @@
   let userOrdersLoading = false;
   let users = [];
   let restaurants = [];
+  let topRestaurants = [];
   let rawReviews = [];
   let historicOrders = [];
   let userOrders = [];
@@ -55,6 +58,11 @@
   let uploadLoading = false;
   let uploadedFiles = [];
   let fileInputEl;
+  let restaurantSearchForm = { term: "", minOrders: "", minRating: "" };
+  let restaurantSearchResults = [];
+  let restaurantSearchLoading = false;
+  let restaurantSearchExecuted = false;
+  let restaurantSearchError = "";
 
   const orderStatuses = ["pending", "preparing", "delivered"];
   const statusStyles = {
@@ -112,16 +120,6 @@
     { label: "Ciudades", value: uniqueCities },
     { label: "Ticket máximo", value: highestTicket ? formatCurrency(highestTicket) : "—" },
   ];
-  $: topRestaurants = [...restaurants]
-    .map((restaurant) => ({
-      id: restaurant._id,
-      name: restaurant.name,
-      cuisine: restaurant.cuisine ?? "General",
-      city: restaurant.city ?? "Ciudad",
-      total: restaurant.total_orders ?? 0,
-    }))
-    .sort((a, b) => b.total - a.total)
-    .slice(0, 4);
   $: timelineFeed = historicOrders
     .map((order) => ({
       id: order._id,
@@ -145,17 +143,25 @@
     dashboardLoading = true;
     errorMessage = "";
     try {
-      const [usersData, restaurantsData, reviewsData, historicData] = await Promise.all([
+      const [usersData, restaurantsData, reviewsData, historicData, topRankedData] = await Promise.all([
         getUsers(),
         getRestaurants(),
         getReviews(),
         getHistoricOrders(),
+        getTopRestaurants(4),
       ]);
 
       users = usersData ?? [];
       restaurants = restaurantsData ?? [];
       rawReviews = reviewsData ?? [];
       historicOrders = historicData ?? [];
+      topRestaurants = (topRankedData ?? []).map((restaurant) => ({
+        id: restaurant._id ?? restaurant.id,
+        name: restaurant.name,
+        cuisine: restaurant.cuisine ?? "General",
+        city: restaurant.city ?? "Ciudad",
+        total: restaurant.total_orders ?? restaurant.total ?? 0,
+      }));
 
       const preferredUser = users.find((user) => user._id === session?.userId);
       if (preferredUser) {
@@ -336,6 +342,11 @@
     if (fileInputEl) {
       fileInputEl.value = "";
     }
+    restaurantSearchForm = { term: "", minOrders: "", minRating: "" };
+    restaurantSearchResults = [];
+    restaurantSearchLoading = false;
+    restaurantSearchExecuted = false;
+    restaurantSearchError = "";
     errorMessage = "";
   }
 
@@ -441,6 +452,36 @@
       await loadDashboard();
     } catch (error) {
       showNotification("error", error.message ?? "No se pudo eliminar el restaurante.");
+    }
+  }
+
+  async function handleRestaurantSearch(event) {
+    event?.preventDefault();
+    restaurantSearchExecuted = true;
+    restaurantSearchLoading = true;
+    restaurantSearchError = "";
+    try {
+      const params = {
+        term: restaurantSearchForm.term.trim(),
+        minOrders: Number(restaurantSearchForm.minOrders) || 0,
+        minRating: Number(restaurantSearchForm.minRating) || 0,
+        limit: 6,
+      };
+      const results = await searchRestaurants(params);
+      restaurantSearchResults = (results ?? []).map((restaurant) => ({
+        id: restaurant._id ?? restaurant.id,
+        name: restaurant.name,
+        cuisine: restaurant.cuisine ?? "General",
+        city: restaurant.city ?? "Ciudad",
+        total_orders: restaurant.total_orders ?? 0,
+        avg_rating: restaurant.avg_rating ?? null,
+        rating_count: restaurant.rating_count ?? restaurant.review_count ?? 0,
+      }));
+    } catch (error) {
+      restaurantSearchError = error.message ?? "No se pudo ejecutar la búsqueda.";
+      restaurantSearchResults = [];
+    } finally {
+      restaurantSearchLoading = false;
     }
   }
 
@@ -586,6 +627,13 @@
       style: "currency",
       currency: "GTQ",
     }).format(amount ?? 0);
+  }
+
+  function formatRating(value) {
+    if (value === null || value === undefined) return "—";
+    const numeric = Number(value);
+    if (Number.isNaN(numeric)) return "—";
+    return numeric.toFixed(1);
   }
 
   function statusColor(status) {
@@ -821,6 +869,75 @@
               </li>
             {/each}
           </ul>
+        </article>
+      </section>
+
+      <section>
+        <article class="glass-card space-y-4">
+          <header class="flex items-start justify-between">
+            <div>
+              <h2 class="text-xl font-semibold text-red-200">Búsqueda avanzada</h2>
+              <p class="text-xs text-gray-400">Consulta restaurantes por texto, órdenes y rating</p>
+            </div>
+            <button class="chip" type="button" on:click={handleRestaurantSearch}>
+              {restaurantSearchLoading ? "Buscando…" : "Buscar"}
+            </button>
+          </header>
+          <form class="grid gap-3 md:grid-cols-3" on:submit|preventDefault={handleRestaurantSearch}>
+            <input
+              class="field md:col-span-3"
+              placeholder="Nombre, ciudad, cocina o platillo"
+              bind:value={restaurantSearchForm.term}
+            />
+            <input
+              class="field"
+              type="number"
+              min="0"
+              placeholder="Órdenes mínimas"
+              bind:value={restaurantSearchForm.minOrders}
+            />
+            <input
+              class="field"
+              type="number"
+              min="0"
+              max="5"
+              step="0.1"
+              placeholder="Rating mínimo"
+              bind:value={restaurantSearchForm.minRating}
+            />
+            <button class="btn-primary" type="submit" disabled={restaurantSearchLoading}>
+              {restaurantSearchLoading ? "Buscando…" : "Aplicar filtros"}
+            </button>
+          </form>
+          {#if restaurantSearchError}
+            <p class="text-xs text-red-300">{restaurantSearchError}</p>
+          {/if}
+          <div class="divider"></div>
+          <p class="text-xs uppercase text-gray-400">Resultados</p>
+          {#if restaurantSearchLoading}
+            <p class="text-sm text-gray-400">Ejecutando búsqueda…</p>
+          {:else if !restaurantSearchExecuted}
+            <p class="text-sm text-gray-500">Define filtros y presiona buscar.</p>
+          {:else if !restaurantSearchResults.length}
+            <p class="text-sm text-gray-500">No encontramos restaurantes con esos criterios.</p>
+          {:else}
+            <ul class="space-y-3 max-h-72 overflow-y-auto pr-2 text-sm">
+              {#each restaurantSearchResults as restaurant (restaurant.id)}
+                <li class="list-row">
+                  <div>
+                    <p class="font-semibold">{restaurant.name}</p>
+                    <p class="text-[0.7rem] text-gray-400">
+                      {restaurant.cuisine} · {restaurant.city}
+                    </p>
+                  </div>
+                  <div class="text-right text-xs text-gray-300">
+                    <p>{restaurant.total_orders ?? 0} órdenes</p>
+                    <p>{formatRating(restaurant.avg_rating)} ★ ({restaurant.rating_count ?? 0})</p>
+                  </div>
+                </li>
+              {/each}
+            </ul>
+          {/if}
         </article>
       </section>
 
